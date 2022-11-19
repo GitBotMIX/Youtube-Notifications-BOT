@@ -1,3 +1,6 @@
+
+from youtubesearchpython.__future__ import VideosSearch, ChannelsSearch
+
 from aiogram import types, Dispatcher
 from create_bot import dp, bot
 from aiogram.dispatcher import FSMContext
@@ -9,26 +12,20 @@ from i18m_language import get_user_locale
 from create_bot import _
 from keyboards.youtube_main_kb import get_youtube_main_kb
 from functions import youtube_url
-from data_base.sqlite_db import Youtube as Youtube_db
-Youtube_db = Youtube_db()
+from data_base.sqlite_db import Youtube, User
+
+
 
 from states import youtube_states
 
 
 async def add_youtube_channel(message: types.Message):
-    user_id = message.from_user.id
-    youtube_channel_list = await Youtube_db.channel(from)
-    print(youtube_channel_list)
-    if len(youtube_channel_list) >= 4:
-        await message.answer('Достигнут лимит по отслеживаемым каналам, чтобы отслеживать более 4 каналов необходимо '
-                             'преобрести премиум, что-бы преобрести премиум воспользуйся командой - /get_premium')
-        return
-    await message.answer('Введи ссылку на канал:')
-    #account_status = await Youtube_db.get_all_row_in_table_where('account', 'status', 'user_id', user_id)
-    #if not account_status:
-    #    await Youtube_db.sql_account_add(user_id)
-    #await youtube_states.AddChannel.message.set()
-    #await youtube_states.AddChannel.next()
+    #videosSearch = VideosSearch('Дрымский', limit=1)
+    #videosResult = await videosSearch.next()
+    channel = ChannelsSearch('test', limit=3)
+    channel = await channel.next()
+    print(channel)
+
 
 """
 async def channel_name_corrector(channel_name):

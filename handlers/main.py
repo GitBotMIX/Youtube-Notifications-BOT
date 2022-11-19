@@ -12,7 +12,8 @@ from keyboards.youtube_main_kb import get_youtube_main_kb
 
 @dp.throttled(large_numbers_requests, rate=5)
 async def start_message(message: types.Message):
-    await message.answer('Добро пожаловать')
+    user_id = message.from_user.id
+    await message.answer('Добро пожаловать', reply_markup=await get_youtube_main_kb(user_id))
 
 
 @dp.throttled(large_numbers_requests, rate=1)

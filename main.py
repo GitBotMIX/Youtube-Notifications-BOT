@@ -1,12 +1,12 @@
 from aiogram.utils import executor
 from create_bot import dp, bot
-from data_base.sqlite_db import Database
+from data_base import sqlite_db
 import asyncio
 
 
 async def start(*args):
     print('Youtube Notifications bot start')
-    Database().sql_start()
+    sqlite_db.sql_start()
 
 
 from handlers import youtube, main
