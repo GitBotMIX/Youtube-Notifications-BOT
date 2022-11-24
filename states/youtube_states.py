@@ -2,5 +2,6 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
 class AddChannel(StatesGroup):
-    message = State()
-    set_channel = State()
+    channel_name = State()
+    channel_url = State()
+    channel_video_url = State()

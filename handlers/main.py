@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.exceptions import Throttled
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from handlers.throttling import large_numbers_requests
-from i18m_language import get_user_locale
+from middlewares.i18m_language import get_user_locale
 from create_bot import _
 from keyboards.youtube_main_kb import get_youtube_main_kb
 
@@ -25,5 +25,5 @@ async def get_main_kb(message: types.Message):
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(start_message, commands=['start'])
-    dp.register_message_handler(get_main_kb, commands=['назад', 'back'], state='*')
+    dp.register_message_handler(get_main_kb, commands=['назад', 'back', 'home'], state='*')
 

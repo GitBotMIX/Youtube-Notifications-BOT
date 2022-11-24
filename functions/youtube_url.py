@@ -3,27 +3,15 @@ from bs4 import BeautifulSoup
 import re
 
 
-async def check(url):
-    try:
-        title_text = title_textF(url)
-    except:
-        return False
-    if 'https://www.youtube.com/c/' not in url and 'https://www.youtube.com/channel/' not in url\
-            and 'https://www.youtube.com/user/' not in url:
-        return False
-    if 'https://www.youtube.com/' in url:
-        if '404 Not Found' not in title_text:
-            return title_text.replace(' - YouTube', '')
-    return False
+async def get_channel_url_by_short_url(channel_id):
+    channel_url = f'https://www.youtube.com/{channel_id}'
+    return channel_url
 
-
-def title_textF(url):
+async def get_channel_title(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     search = soup.find('title').text
-    key = '"videoId":"'
-    #data = parse_filter(re.findall(key +r'([^*]{11})', str(search)))
-    return search
+    return search.replace(' - YouTube', '')
 
 
 def parse_filter(data_list):
@@ -34,27 +22,32 @@ def parse_filter(data_list):
     return filter_list
 
 async def url_corrector(url):
-    print(url)
     url = url.replace('featured', 'videos')
-    if 'featured' not in url and 'videos' not in url:
+    if 'videos' not in url:
         url = url + '/videos'
-    print(url)
     return url
 
 async def parse_videos(url):
-    response = requests.get(url)
+    correct_url = await url_corrector(url)
+    response = requests.get(correct_url)
     soup = BeautifulSoup(response.text, 'html.parser')
     search = soup.find_all('script')
     key = '"videoId":"'
     data = re.findall(key +r'([^*]{11})', str(search))
     return data[0]
 
+
+async def get_channel_url_id_by_url(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    search = soup.find(href=re.compile("https://www.youtube.com/"), rel="canonical")['href']
+    return search
+
 def parse_videos_test(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    search = soup.find_all('script')
-    key = '"videoId":"'
-    data = re.findall(key +r'([^*]{11})', str(search))
-    return data
+    search = soup.find(href=re.compile("https://www.youtube.com/"), rel="canonical")['href']
+    return search
 
+#print(parse_videos_test('https://www.youtube.com/@StarGameWF'))
 #print(parse_videos_test('https://www.youtube.com/c/stayugly_/videos'))

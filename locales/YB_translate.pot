@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-11-14 17:12+0300\n"
+"POT-Creation-Date: 2022-11-24 10:33+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,109 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
 
-#: handlers/main.py:22
+#: handlers/main.py:23
 msgid "Главное меню"
 msgstr ""
 
 #: handlers/throttling.py:8
 msgid "Превышено количество запросов, попробуй позже"
+msgstr ""
+
+#: handlers/youtube.py:25 handlers/youtube.py:95
+msgid "🔔Уведомления о канале \"{}\" включены☑"
+msgstr ""
+
+#: handlers/youtube.py:33 handlers/youtube.py:100
+msgid "Уведомления о канале \"{}\" уже включены❌"
+msgstr ""
+
+#: handlers/youtube.py:46
+msgid "Выбери метод поиска канала:"
+msgstr ""
+
+#: handlers/youtube.py:56
+msgid "Введи название канала:"
+msgstr ""
+
+#: handlers/youtube.py:59
+msgid "Введи ссылку на канал:"
+msgstr ""
+
+#: handlers/youtube.py:62
+msgid "Введи ссылку на видео с канала:"
+msgstr ""
+
+#: handlers/youtube.py:65
+msgid ""
+"Как я работаю:\n"
+" "
+msgstr ""
+
+#: handlers/youtube.py:73
+msgid "Да"
+msgstr ""
+
+#: handlers/youtube.py:75
+msgid "Нет"
+msgstr ""
+
+#: handlers/youtube.py:77
+msgid "Ссылка на канал"
+msgstr ""
+
+#: handlers/youtube.py:138
+msgid ""
+"Не удается найти нужный канал, попробуй ввести более точное название "
+"канала, либо используй другой метод добавления канала"
+msgstr ""
+
+#: handlers/youtube.py:145
+msgid ""
+"Не могу найти информацию о канале \"{}\"\n"
+" Попробуй ещё раз!"
+msgstr ""
+
+#: handlers/youtube.py:155
+msgid "Не могу найти канал с именем \"{}\""
+msgstr ""
+
+#: handlers/youtube.py:166
+msgid "..."
+msgstr ""
+
+#: handlers/youtube.py:183
+msgid ""
+"*Этот канал ты ищешь?*\n"
+"\n"
+"Название: *{channel_name}*\n"
+"Подписчики: *{channel_subs}*\n"
+"Всего видео: *{channel_video_count}*{channel_logo_url}"
+msgstr ""
+
+#: handlers/youtube.py:225
+msgid "Введена неверная ссылка на канал❌"
+msgstr ""
+
+#: handlers/youtube.py:249
+msgid ""
+"Не могу найти видео по твоей ссылке.❌\n"
+"Пример правильной ссылки на видео с канала - "
+"https://www.youtube.com/watch?v=ycPr5-27vSI"
+msgstr ""
+
+#: keyboards/markups.py:8
+msgid "По названию канала"
+msgstr ""
+
+#: keyboards/markups.py:10
+msgid "По ссылке на канал"
+msgstr ""
+
+#: keyboards/markups.py:12
+msgid "По ссылке на видео"
+msgstr ""
+
+#: keyboards/markups.py:14
+msgid "Ничего не понимаю..."
 msgstr ""
 

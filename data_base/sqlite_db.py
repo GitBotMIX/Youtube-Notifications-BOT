@@ -15,6 +15,42 @@ def sql_start():
     return cur, base
 
 
+async def tuple_list_to_list_first_values_in_tuple(list_tuple: list[tuple]) -> list:
+    list_values = [i[0] for i in list_tuple]
+    return list_values
+
+
+class Methods:
+    SELECT_ROWS = None
+    SELECT_ROW = None
+    TABLE = None
+    WHERE_ROW = None
+
+    @classmethod
+    async def get_all_rows_related_id(cls, user_id):
+        if len(cls.SELECT_ROWS) == 1:
+            __select_rows_str = cls.SELECT_ROWS[0]
+        else:
+            __select_rows_str = ','.join(cls.SELECT_ROWS)
+        __tuple_list = cur.execute(f'SELECT {__select_rows_str} '
+                                   f'FROM {cls.TABLE} '
+                                   f'WHERE {cls.WHERE_ROW} == ?', (user_id,)).fetchall()
+        return __tuple_list
+
+    @classmethod
+    async def where_user(cls, user_id):
+        channels_tuple_list = cur.execute(f'SELECT {cls.SELECT_ROW} '
+                                          f'FROM {cls.TABLE} '
+                                          f'WHERE {cls.WHERE_ROW} == ?', (user_id,)).fetchall()
+        return await tuple_list_to_list_first_values_in_tuple(channels_tuple_list)
+
+    @classmethod
+    async def get_all(cls):
+        channels_tuple_list = cur.execute(f'SELECT {cls.SELECT_ROW} '
+                                          f'FROM {cls.TABLE}').fetchall()
+        return channels_tuple_list
+
+
 class Database:
     @staticmethod
     async def sql_add(args: tuple, table_name):
@@ -23,24 +59,20 @@ class Database:
         base.commit()
 
     @staticmethod
-    async def sql_delete(table_name: str, where: str, where_data: tuple, **and_data):
+    async def sql_delete(table_name: str, where: str, where_data: str, **and_data):
         if and_data:
-            print('Сработала AND_DATA (27)')
-            and_sql_str = [i[0] for i in and_data]
-            and_data_list = [i[1] for i in and_data]
+            and_sql_str = [i[0] for i in and_data.items()]
+            and_data_list = [str(i[1]) for i in and_data.items()]
             and_sql_generated_str = ''
+            and_data_list.insert(0, str(where_data))
             for i in and_sql_str:
                 and_sql_generated_str += f' AND {i} == ?'
-            cur.execute(f'DELETE FROM {USER_TABLE} WHERE {USER_ROWS["USER"]} == ?{and_sql_generated_str}',
+            cur.execute(f'DELETE FROM {table_name} WHERE {where} == ?{and_sql_generated_str}',
                         tuple(and_data_list))
             base.commit()
-        cur.execute(f'DELETE FROM {table_name} WHERE {where} == ?', where_data)
-        base.commit()
-
-
-async def tuple_list_to_list_first_values_in_tuple(list_tuple: list[tuple]) -> list:
-    list_values = [i[0] for i in list_tuple]
-    return list_values
+        else:
+            cur.execute(f'DELETE FROM {table_name} WHERE {where} == ?', str(where_data))
+            base.commit()
 
 
 class User:
@@ -50,7 +82,7 @@ class User:
 
     @staticmethod
     async def delete(user_id: str):
-        await Database().sql_delete(USER_TABLE, USER_ROWS['USER'], (user_id,))
+        await Database().sql_delete(USER_TABLE, USER_ROWS['USER'], user_id)
 
     @staticmethod
     async def get_user(user_id):
@@ -74,29 +106,58 @@ class User:
                                             f'WHERE {YOUTUBE_ROWS["USER"]} == ?', (user_id,)).fetchall()
             return status_tuple_list
 
+    class Language:
+        @staticmethod
+        async def get_language(user_id):
+            user_language_tuple_list = cur.execute(f'SELECT {USER_ROWS["LANGUAGE"]} '
+                                                   f'FROM {USER_TABLE} '
+                                                   f'WHERE {USER_ROWS["USER"]} == ?', (str(user_id),)).fetchone()
+            return user_language_tuple_list[0]
 
-class Youtube:
+
+class Youtube(Methods):
+    SELECT_ROWS = [YOUTUBE_ROWS["CHANNEL_NAME"], YOUTUBE_ROWS["URL"],
+                   YOUTUBE_ROWS["VIDEO"], YOUTUBE_ROWS["USER"]]
+
     @staticmethod
     async def add(*args: str):
         await Database().sql_add(args, YOUTUBE_TABLE)
 
     @staticmethod
-    async def delete(user_id: str):
-        await Database().sql_delete(USER_TABLE, USER_ROWS['USER'], (user_id,))
+    async def delete(user_id: str | int):
+        await Database().sql_delete(YOUTUBE_TABLE, YOUTUBE_ROWS['USER'], str(user_id))
 
-    class Channel:
-        @staticmethod
-        async def where_user(user_id):
-            channels_tuple_list = cur.execute(f'SELECT {YOUTUBE_ROWS["URL"]} '
-                                              f'FROM {YOUTUBE_TABLE} '
-                                              f'WHERE {YOUTUBE_ROWS["USER"]} == ?', (user_id,)).fetchall()
-            return channels_tuple_list
+    @staticmethod
+    async def get_user(user_id):
+        user_id_tuple_list = cur.execute(f'SELECT {USER_ROWS["USER"]} '
+                                         f'FROM {USER_TABLE} '
+                                         f'WHERE {USER_ROWS["USER"]} == ?', (str(user_id),)).fetchone()
+        return user_id_tuple_list
 
-        @staticmethod
-        async def get_all():
-            channels_tuple_list = cur.execute(f'SELECT {YOUTUBE_ROWS["URL"]} '
-                                              f'FROM {YOUTUBE_TABLE}').fetchall()
-            return channels_tuple_list
+    class Channel(Methods):
+        TABLE = YOUTUBE_TABLE
+        SELECT_ROWS = [YOUTUBE_ROWS["CHANNEL_NAME"], YOUTUBE_ROWS["URL"]]
+        WHERE_ROW = YOUTUBE_ROWS["USER"]
+
+        class Name(Methods):
+            TABLE = YOUTUBE_TABLE
+            SELECT_ROW = YOUTUBE_ROWS["CHANNEL_NAME"]
+            WHERE_ROW = YOUTUBE_ROWS["USER"]
+
+            @classmethod
+            async def delete(cls, channel_name: str, user_id: str | int):
+                await Database().sql_delete(cls.TABLE, cls.WHERE_ROW, str(user_id),
+                                            channel_name=channel_name)
+
+        class Url(Methods):
+            TABLE = YOUTUBE_TABLE
+            SELECT_ROW = YOUTUBE_ROWS["URL"]
+            WHERE_ROW = YOUTUBE_ROWS["USER"]
+
+            @classmethod
+            async def delete(cls, channel_url: str, user_id: str | int):
+                await Database().sql_delete(cls.TABLE, cls.WHERE_ROW, str(user_id),
+                                            channel_url=channel_url)
 
 
 if __name__ == "__main__":
