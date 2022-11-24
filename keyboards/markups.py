@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from create_bot import _
-from i18m_language import get_user_locale
+from middlewares.i18m_language import get_user_locale
 
 
 async def get_youtube_add_method_kb(user_id):

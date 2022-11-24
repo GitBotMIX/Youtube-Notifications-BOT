@@ -1,5 +1,5 @@
 from create_bot import _
-from i18m_language import get_user_locale
+from middlewares.i18m_language import get_user_locale
 
 
 async def large_numbers_requests(*args, **kwargs):

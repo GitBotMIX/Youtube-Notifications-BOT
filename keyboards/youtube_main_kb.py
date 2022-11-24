@@ -1,5 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
-from i18m_language import get_user_locale
+from middlewares.i18m_language import get_user_locale
 
 
 async def get_buttons_en():
