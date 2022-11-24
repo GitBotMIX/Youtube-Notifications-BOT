@@ -3,5 +3,7 @@
 __pycache__
 /__pycache__
 myvenv
-Notifications.db
+/log
+/tmp
+/db/*.sqlite3
 .DS_Store
