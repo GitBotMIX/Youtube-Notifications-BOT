@@ -35,7 +35,7 @@ async def add_youtube_channel(message: types.Message, user_lang):
     user_id = message.from_user.id
     name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
     if len(name_and_url_channel_list) >= 4:
-        await message.answer(_('У тебя слишком много каналов.\nЧто-бы добавить новые - удали старые:', locale=user_lang),
+        await message.answer(_('❌У тебя слишком много каналов.\nЧто-бы добавить новые - удали старые:', locale=user_lang),
                              reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))
     else:
         await message.answer(_('Выбери метод поиска канала🔍', locale=user_lang),
