@@ -39,16 +39,16 @@ class Methods:
 
     @classmethod
     async def where_user(cls, user_id):
-        channels_tuple_list = cur.execute(f'SELECT {cls.SELECT_ROW} '
-                                          f'FROM {cls.TABLE} '
-                                          f'WHERE {cls.WHERE_ROW} == ?', (user_id,)).fetchall()
-        return await tuple_list_to_list_first_values_in_tuple(channels_tuple_list)
+        where_user_tuple_list = cur.execute(f'SELECT {cls.SELECT_ROW} '
+                                            f'FROM {cls.TABLE} '
+                                            f'WHERE {cls.WHERE_ROW} == ?', (user_id,)).fetchall()
+        return await tuple_list_to_list_first_values_in_tuple(where_user_tuple_list)
 
     @classmethod
     async def get_all(cls):
-        channels_tuple_list = cur.execute(f'SELECT {cls.SELECT_ROW} '
-                                          f'FROM {cls.TABLE}').fetchall()
-        return channels_tuple_list
+        get_all_tuple_list = cur.execute(f'SELECT {cls.SELECT_ROW} '
+                                         f'FROM {cls.TABLE}').fetchall()
+        return await tuple_list_to_list_first_values_in_tuple(get_all_tuple_list)
 
 
 class Database:
@@ -74,6 +74,23 @@ class Database:
             cur.execute(f'DELETE FROM {table_name} WHERE {where} == ?', str(where_data))
             base.commit()
 
+    @staticmethod
+    async def sql_update(table_name: str, set_row: str, set_row_data: str, where: str, where_data: str, **and_data):
+        if and_data:
+            and_sql_str = [i[0] for i in and_data.items()]
+            and_data_list = [str(i[1]) for i in and_data.items()]
+            and_sql_generated_str = ''
+            and_data_list.insert(0, str(where_data))
+            and_data_list.insert(0, str(set_row_data))
+            for i in and_sql_str:
+                and_sql_generated_str += f' AND {i} == ?'
+            cur.execute(f'UPDATE {table_name} SET {set_row} == ? WHERE {where} == ?{and_sql_generated_str}',
+                        tuple(and_data_list))
+            base.commit()
+        else:
+            cur.execute(f'UPDATE {table_name} SET {set_row} == ? WHERE {where} == ?',
+                        (str(set_row_data), str(where_data),))
+            base.commit()
 
 class User:
     @staticmethod
@@ -107,12 +124,25 @@ class User:
             return status_tuple_list
 
     class Language:
+        SELECT_ROW = USER_ROWS["LANGUAGE"]
+        TABLE = USER_TABLE
+        WHERE_ROW = USER_ROWS["USER"]
+
         @staticmethod
         async def get_language(user_id):
             user_language_tuple_list = cur.execute(f'SELECT {USER_ROWS["LANGUAGE"]} '
                                                    f'FROM {USER_TABLE} '
                                                    f'WHERE {USER_ROWS["USER"]} == ?', (str(user_id),)).fetchone()
             return user_language_tuple_list[0]
+
+        @classmethod
+        async def update(cls, language: str, user_id: str | int):
+            await Database.sql_update(cls.TABLE, cls.SELECT_ROW, language, cls.WHERE_ROW, str(user_id))
+
+    class Id(Methods):
+        SELECT_ROW = USER_ROWS["USER"]
+        WHERE_ROW = USER_ROWS["USER"]
+        TABLE = USER_TABLE
 
 
 class Youtube(Methods):
@@ -129,20 +159,25 @@ class Youtube(Methods):
 
     @staticmethod
     async def get_user(user_id):
-        user_id_tuple_list = cur.execute(f'SELECT {USER_ROWS["USER"]} '
-                                         f'FROM {USER_TABLE} '
-                                         f'WHERE {USER_ROWS["USER"]} == ?', (str(user_id),)).fetchone()
+        user_id_tuple_list = cur.execute(f'SELECT {YOUTUBE_ROWS["USER"]} '
+                                         f'FROM {YOUTUBE_TABLE} '
+                                         f'WHERE {YOUTUBE_ROWS["USER"]} == ?', (str(user_id),)).fetchone()
         return user_id_tuple_list
 
     class Channel(Methods):
         TABLE = YOUTUBE_TABLE
-        SELECT_ROWS = [YOUTUBE_ROWS["CHANNEL_NAME"], YOUTUBE_ROWS["URL"]]
+        SELECT_ROWS = [YOUTUBE_ROWS["CHANNEL_NAME"], YOUTUBE_ROWS["URL"], YOUTUBE_ROWS["VIDEO"]]
         WHERE_ROW = YOUTUBE_ROWS["USER"]
 
         class Name(Methods):
             TABLE = YOUTUBE_TABLE
             SELECT_ROW = YOUTUBE_ROWS["CHANNEL_NAME"]
             WHERE_ROW = YOUTUBE_ROWS["USER"]
+
+            @classmethod
+            async def update(cls, channel_name: str, channel_name_old: str, user_id: str | int):
+                await Database.sql_update(cls.TABLE, cls.SELECT_ROW, channel_name, cls.WHERE_ROW, str(user_id),
+                                          channel_name=channel_name_old)
 
             @classmethod
             async def delete(cls, channel_name: str, user_id: str | int):
@@ -158,6 +193,16 @@ class Youtube(Methods):
             async def delete(cls, channel_url: str, user_id: str | int):
                 await Database().sql_delete(cls.TABLE, cls.WHERE_ROW, str(user_id),
                                             channel_url=channel_url)
+
+        class VideoId:
+            TABLE = YOUTUBE_TABLE
+            SELECT_ROW = YOUTUBE_ROWS["VIDEO"]
+            WHERE_ROW = YOUTUBE_ROWS["USER"]
+
+            @classmethod
+            async def update(cls, video_id: str, video_id_old: str, user_id: str | int):
+                await Database.sql_update(cls.TABLE, cls.SELECT_ROW, video_id, cls.WHERE_ROW, str(user_id),
+                                          current_video=video_id_old)
 
 
 if __name__ == "__main__":

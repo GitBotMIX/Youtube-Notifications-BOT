@@ -3,7 +3,6 @@ import asyncio
 from aiogram import types, Dispatcher
 from create_bot import dp, bot
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import Throttled
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from middlewares.i18m_language import get_user_locale
 from create_bot import _
@@ -11,13 +10,15 @@ from keyboards.markups import get_youtube_add_method_kb
 from functions import youtube_url
 from data_base.sqlite_db import Youtube
 from states.youtube_states import AddChannel
+from aiogram.utils.exceptions import Throttled
+from handlers.throttling import large_numbers_requests, throttling_alert
 
 
 async def notifications_enabled(user_id, user_lang, channel_name):
-    send_message_data = await bot.send_message(user_id, '☑')
+    send_message_data = await bot.send_message(user_id, '✔')
     await asyncio.sleep(1.2)
     await bot.edit_message_text(
-        _('🔔Уведомления о канале "{}" включены☑', locale=user_lang).format(channel_name),
+        _('🔔Уведомления о канале "{}" включены✔', locale=user_lang).format(channel_name),
         chat_id=user_id, message_id=send_message_data.message_id)
 
 
@@ -29,36 +30,49 @@ async def notifications_enabled_error(user_id, user_lang, channel_name):
         chat_id=user_id, message_id=send_message_data.message_id)
 
 
+@dp.throttled(throttling_alert, rate=3)
 async def add_youtube_channel(message: types.Message, user_lang):
-    """
-    videosSearch = VideosSearch('Дрымский', limit=1)
-    videosResult = await videosSearch.next()
-    channel = ChannelsSearch('test', limit=3)
-    channel = await channel.next()
-    print(channel)
-    """
     user_id = message.from_user.id
-    await message.answer(_('Выбери метод поиска канала:', locale=user_lang),
-                         reply_markup=await get_youtube_add_method_kb(user_id))
+    name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
+    if len(name_and_url_channel_list) >= 4:
+        await message.answer(_('У тебя слишком много каналов.\nЧто-бы добавить новые - удали старые:', locale=user_lang),
+                             reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))
+    else:
+        await message.answer(_('Выбери метод поиска канала🔍', locale=user_lang),
+                             reply_markup=await get_youtube_add_method_kb(user_id))
 
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('youtube_add_method '))
+@dp.throttled(large_numbers_requests, rate=4)
 async def youtube_add_method_call_handler(call: types.CallbackQuery):
     user_id = call.from_user.id
     user_lang = await get_user_locale(user_id)
     add_method = call.data.replace('youtube_add_method ', '')
     if add_method == 'channel_name':
-        await call.message.edit_text(_('Введи название канала:', locale=user_lang))
+        await call.message.edit_text(_('🔍Введи название канала:', locale=user_lang))
         await AddChannel.channel_name.set()
     elif add_method == 'channel_url':
-        await call.message.edit_text(_('Введи ссылку на канал:', locale=user_lang))
+        await call.message.edit_text(_('🕹Введи ссылку на канал:', locale=user_lang))
         await AddChannel.channel_url.set()
     elif add_method == 'channel_video_url':
-        await call.message.edit_text(_('Введи ссылку на видео с канала:', locale=user_lang))
+        await call.message.edit_text(_('🎥Введи ссылку на видео с канала:', locale=user_lang))
         await AddChannel.channel_video_url.set()
     else:
-        await call.message.edit_text(_('Как я работаю:\n'
-                                       ' ', locale=user_lang))
+        await call.message.edit_text(_('Как я работаю❓\n'
+                                       'Для начала нужно добавить канал, '
+                                       'что-бы это сделать нажми на кнопку "Добавить канал", '
+                                       'затем выбери метод которым ты будешь добавлять канал:\n\n'
+                                       'По названию канала - просто введи название нужного тебе канала.\n\n'
+                                       'По ссылке на канал - для того что-бы получить ссылку на канал, '
+                                       'зайди в ютубе на главную страницу нужного тебе канала, дальше либо скопируй '
+                                       'ссылку с адресной строки браузера, либо если ты открыл канал в приложении '
+                                       'нажми на 3 точки в правом верхнем углу, затем "Поделиться", нажми на кнопку '
+                                       '"Скопировать ссылку", осталось только отправить эту ссылку боту после нажатия '
+                                       'соответствующей кнопки.\n\n'
+                                       'По ссылке на видео с канала - что-бы получить ссылку на видео с канала, '
+                                       'нужно открыть любое видео с нужного тебе канала, затем нажми на кнопку '
+                                       '"Поделиться" и "Скопировать ссылку", дальше осталось только отправить '
+                                       'эту ссылку боту, после нажатия соответствующей кнопки.', locale=user_lang))
 
 
 async def get_is_channel_correct_kb(channel_url: str, user_request_channel_name: str,
@@ -85,9 +99,9 @@ async def youtube_right_channel_call_handler(call: types.CallbackQuery):
     current_video = await youtube_url.parse_videos(channel_url)
     user_channels_url_list = await Youtube.Channel.Url.where_user(user_id)
     if channel_url not in user_channels_url_list:
-        await call.message.edit_text('☑')
+        await call.message.edit_text('✔')
         await asyncio.sleep(1.5)
-        await call.message.edit_text(_('🔔Уведомления о канале "{}" включены☑', locale=user_lang).format(channel_name))
+        await call.message.edit_text(_('🔔Уведомления о канале "{}" включены✔', locale=user_lang).format(channel_name))
         await Youtube.add(channel_name, channel_url, current_video, user_id)
     else:
         await call.message.edit_text('❌')
@@ -269,9 +283,11 @@ async def delete_callback_execute(call: types.CallbackQuery):
     name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
     if name_and_url_channel_list:
         await call.message.edit_text(
-            text=_('Какой канал удалить?', locale=user_lang), reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))
+            text=_('Какой канал удалить?', locale=user_lang),
+            reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))
     else:
-        await call.message.edit_text(text='Все каналы удалены')
+        await call.message.edit_text(text=_('Все каналы удалены✖', locale=user_lang))
+
 
 async def get_delete_youtube_channel_kb(name_and_url_channel_list):
     markup = InlineKeyboardMarkup()  # создаём клавиатуру
@@ -282,6 +298,7 @@ async def get_delete_youtube_channel_kb(name_and_url_channel_list):
     return markup  # возвращаем клавиатуру
 
 
+@dp.throttled(throttling_alert, rate=6)
 async def delete_youtube_channel(message: types.Message):
     user_id = message.from_user.id
     user_lang = await get_user_locale(user_id)
@@ -290,13 +307,16 @@ async def delete_youtube_channel(message: types.Message):
         await message.answer(_('Какой канал удалить?', locale=user_lang),
                              reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))
     else:
-        await message.answer(_('У тебя ещё нету отслеживаемых каналов, ты можешь добаить их командой "/Добавить канал"',
+        await message.answer(_('❌У тебя ещё нету отслеживаемых каналов, ты можешь добавить их командой '
+                               '"Добавить канал"',
                                locale=user_lang))
 
 
 def register_handlers_client(dp: Dispatcher):
-    dp.register_message_handler(add_youtube_channel, text_contains=['Добавить канал'])
+    dp.register_message_handler(add_youtube_channel,
+                                lambda msg: any(i in msg.text.lower() for i in ['добавить канал', 'add channel']))
     dp.register_message_handler(youtube_add_with_channel_name, state=AddChannel.channel_name)
     dp.register_message_handler(youtube_add_with_channel_url, state=AddChannel.channel_url)
     dp.register_message_handler(youtube_add_with_channel_video_url, state=AddChannel.channel_video_url)
-    dp.register_message_handler(delete_youtube_channel, text_contains=['Удалить канал'])
+    dp.register_message_handler(delete_youtube_channel,
+                                lambda msg: any(i in msg.text.lower() for i in ['удалить канал', 'delete channel']))

@@ -43,6 +43,10 @@ async def get_channel_url_id_by_url(url):
     search = soup.find(href=re.compile("https://www.youtube.com/"), rel="canonical")['href']
     return search
 
+
+async def get_video_url_by_id(video_id: str) -> str:
+    return f'https://www.youtube.com/watch?v={video_id}'
+
 def parse_videos_test(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')

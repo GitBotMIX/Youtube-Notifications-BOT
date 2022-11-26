@@ -25,5 +25,6 @@ async def get_main_kb(message: types.Message):
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(start_message, commands=['start'])
-    dp.register_message_handler(get_main_kb, commands=['назад', 'back', 'home'], state='*')
+    dp.register_message_handler(get_main_kb,
+                                lambda msg: any(i in msg.text.lower() for i in ['назад', 'back', 'home']), state='*')
 
