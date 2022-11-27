@@ -5,3 +5,5 @@ YOUTUBE_ROWS = {'CHANNEL_NAME': 'channel_name', 'URL': 'channel_url',
 # from User database table
 USER_TABLE = 'user'
 USER_ROWS = {'STATUS': 'status', 'LANGUAGE': 'language', 'USER': 'user_id'}
+# from youtube handler
+MAX_NUMBER_ON_CHANNEL = 8

@@ -108,7 +108,10 @@ class User:
                                          f'WHERE {USER_ROWS["USER"]} == ?', (str(user_id),)).fetchone()
         return user_id_tuple_list
 
-    class Status:
+    class Status(Methods):
+        SELECT_ROW = USER_ROWS["STATUS"]
+        TABLE = USER_TABLE
+        WHERE_ROW = USER_ROWS["USER"]
         @staticmethod
         async def to_premium(user_id):
             user_id = str(user_id)
@@ -116,12 +119,6 @@ class User:
                         f'WHERE {USER_ROWS["USER"]} == ?', ('premium', user_id,))
             base.commit()
 
-        @staticmethod
-        async def where_user(user_id):
-            status_tuple_list = cur.execute(f'SELECT {YOUTUBE_ROWS["URL"]} '
-                                            f'FROM {YOUTUBE_TABLE} '
-                                            f'WHERE {YOUTUBE_ROWS["USER"]} == ?', (user_id,)).fetchall()
-            return status_tuple_list
 
     class Language:
         SELECT_ROW = USER_ROWS["LANGUAGE"]

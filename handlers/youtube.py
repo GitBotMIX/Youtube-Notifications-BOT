@@ -8,8 +8,9 @@ from middlewares.i18m_language import get_user_locale
 from create_bot import _
 from keyboards.markups import get_youtube_add_method_kb
 from functions import youtube_url
-from data_base.sqlite_db import Youtube
+from data_base.sqlite_db import Youtube, User
 from states.youtube_states import AddChannel
+from constants import MAX_NUMBER_ON_CHANNEL
 from aiogram.utils.exceptions import Throttled
 from handlers.throttling import large_numbers_requests, throttling_alert
 
@@ -30,14 +31,33 @@ async def notifications_enabled_error(user_id, user_lang, channel_name):
         chat_id=user_id, message_id=send_message_data.message_id)
 
 
+async def user_status_check(user_id, user_lang, message=None, callback=None, name_and_url_channel_list=None):
+    if not name_and_url_channel_list:
+        name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
+    user_status = await User.Status.where_user(user_id)
+    if user_status[0] == 'default':
+        if len(name_and_url_channel_list) >= MAX_NUMBER_ON_CHANNEL:
+            if message:
+                await message.answer(_('❌У тебя слишком много каналов.\nЧто-бы добавить новые - удали старые:',
+                                       locale=user_lang),
+                                     reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))
+            else:
+                await callback.message.edit_text(_('❌У тебя слишком много каналов.\n'
+                                                   'Что-бы добавить новые - удали старые:', locale=user_lang),
+                                                 reply_markup=await get_delete_youtube_channel_kb(
+                                                     name_and_url_channel_list))
+            return False
+        else:
+            return True
+    return True
+
+
 @dp.throttled(throttling_alert, rate=3)
 async def add_youtube_channel(message: types.Message, user_lang):
     user_id = message.from_user.id
     name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
-    if len(name_and_url_channel_list) >= 4:
-        await message.answer(_('❌У тебя слишком много каналов.\nЧто-бы добавить новые - удали старые:', locale=user_lang),
-                             reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))
-    else:
+    if await user_status_check(user_id, user_lang, message=message,
+                               name_and_url_channel_list=name_and_url_channel_list):
         await message.answer(_('Выбери метод поиска канала🔍', locale=user_lang),
                              reply_markup=await get_youtube_add_method_kb(user_id))
 
@@ -93,6 +113,8 @@ async def get_is_channel_correct_kb(channel_url: str, user_request_channel_name:
 async def youtube_right_channel_call_handler(call: types.CallbackQuery):
     user_id = call.from_user.id
     user_lang = await get_user_locale(user_id)
+    if not await user_status_check(user_id, user_lang, callback=call):
+        return
     channel_short_url = call.data.replace('YRC ', '')
     channel_url = await youtube_url.get_channel_url_by_short_url(channel_short_url)
     channel_name = await youtube_url.get_channel_title(channel_url)
@@ -225,6 +247,8 @@ async def youtube_add_with_channel_name(message: types.Message, state: FSMContex
 async def youtube_add_with_channel_url(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     user_lang = await get_user_locale(user_id)
+    if not await user_status_check(user_id, user_lang, message=message):
+        return
     try:
         channel_url = await youtube_url.get_channel_url_id_by_url(message.text)
     except:
@@ -248,6 +272,8 @@ async def youtube_add_with_channel_url(message: types.Message, state: FSMContext
 async def youtube_add_with_channel_video_url(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     user_lang = await get_user_locale(user_id)
+    if not await user_status_check(user_id, user_lang, message=message):
+        return
     user_video_url = message.text
     try:
         video = await Video.getInfo(user_video_url)
