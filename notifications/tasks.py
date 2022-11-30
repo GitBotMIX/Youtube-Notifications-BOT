@@ -10,7 +10,7 @@ from notifications import youtube_listener
 
 class Scheduler:
     async def make_task(self):
-        aioschedule.every(2).seconds.do(youtube_listener.listen)
+        aioschedule.every(10).seconds.do(youtube_listener.listen)
         #aioschedule.every().day.at('1:00').do(reset_requests_amount)
         # aioschedule.every(5).seconds.do(self.reset_requests_amount)
         while True:
