@@ -44,25 +44,3 @@ async def listen():
                                                   locale=await get_user_locale(user_id)).format(channel_name_old,
                                                                                                 channel_url),
                                        parse_mode='Markdown')
-
-        """
-        for yc in range(len(youtube_channel_url)):
-            parse_video_url = await youtube_url.parse_videos(youtube_channel_url[yc])
-            old_parse_video_url = await Database().get_all_row_in_table_where_and('youtube',
-                                                                                  'current_video', 'channel_url',
-                                                                                  'user_id', youtube_channel_url[yc],
-                                                                                  user_id)
-            if parse_video_url != old_parse_video_url[0][0]:
-                try:
-                    await bot.send_message(user_id, f'На канале "{youtube_channel_name[yc]}" новое видео\n'
-                                                    f'https://www.youtube.com/watch?v={parse_video_url}')
-                    await Database().sql_update('youtube', 'current_video', 'current_video', parse_video_url,
-                                                old_parse_video_url[0][0])
-                except:  # ChatNotFound
-                    await Database().sql_remove_where('youtube', 'user_id', user_id)
-                    await Database().sql_remove_where('notification_status', 'user_id', user_id)
-                    print('X')
-                    break
-            else:
-                print('<')
-        """

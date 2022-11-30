@@ -94,6 +94,7 @@ class Database:
                         (str(set_row_data), str(where_data),))
             base.commit()
 
+
 class User:
     @staticmethod
     async def add(*args: str):
@@ -114,13 +115,13 @@ class User:
         SELECT_ROW = USER_ROWS["STATUS"]
         TABLE = USER_TABLE
         WHERE_ROW = USER_ROWS["USER"]
+
         @staticmethod
         async def to_premium(user_id):
             user_id = str(user_id)
             cur.execute(f'UPDATE {USER_TABLE} SET {USER_ROWS["STATUS"]} == ? '
                         f'WHERE {USER_ROWS["USER"]} == ?', ('premium', user_id,))
             base.commit()
-
 
     class Language:
         SELECT_ROW = USER_ROWS["LANGUAGE"]
