@@ -8,9 +8,11 @@ def sql_start():
     cur = base.cursor()
     if base:
         print('Data base connected OK!')
-    base.execute('CREATE TABLE IF NOT EXISTS user(status TEXT, language TEXT, user_id TEXT)')
-    base.execute('CREATE TABLE IF NOT EXISTS '
-                 'youtube(channel_name TEXT, channel_url TEXT, current_video TEXT, user_id TEXT)')
+    base.execute(f'CREATE TABLE IF NOT EXISTS user({USER_ROWS["STATUS"]} TEXT, {USER_ROWS["LANGUAGE"]} TEXT, '
+                 f'{USER_ROWS["USER"]} TEXT)')
+    base.execute(f'CREATE TABLE IF NOT EXISTS '
+                 f'youtube({YOUTUBE_ROWS["CHANNEL_NAME"]} TEXT, {YOUTUBE_ROWS["URL"]} TEXT, '
+                 f'{YOUTUBE_ROWS["VIDEO"]} TEXT, {YOUTUBE_ROWS["USER"]} TEXT)')
     base.commit()
     return cur, base
 

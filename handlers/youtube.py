@@ -121,15 +121,19 @@ async def youtube_right_channel_call_handler(call: types.CallbackQuery):
     current_video = await youtube_url.parse_videos(channel_url)
     user_channels_url_list = await Youtube.Channel.Url.where_user(user_id)
     if channel_url not in user_channels_url_list:
-        await call.message.edit_text('✔')
+        await call.message.delete()
+        anim_msg = await bot.send_message(user_id, '✔')
         await asyncio.sleep(1.5)
-        await call.message.edit_text(_('🔔Уведомления о канале "{}" включены✔', locale=user_lang).format(channel_name))
+        await bot.edit_message_text(_('🔔Уведомления о канале "{}" включены✔', locale=user_lang).format(channel_name),
+                                    chat_id=user_id, message_id=anim_msg.message_id)
         await Youtube.add(channel_name, channel_url, current_video, user_id)
     else:
-        await call.message.edit_text('❌')
+        await call.message.delete()
+        anim_msg = await bot.send_message(user_id, '❌')
         await asyncio.sleep(1.5)
-        await call.message.edit_text(
-            _('Уведомления о канале "{}" уже включены❌', locale=user_lang).format(channel_name))
+        await bot.edit_message_text(
+            _('Уведомления о канале "{}" уже включены❌', locale=user_lang).format(channel_name), chat_id=user_id,
+            message_id=anim_msg.message_id)
 
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('YWC '))
@@ -142,7 +146,7 @@ async def youtube_wrong_channel_call_handler(call: types.CallbackQuery):
     channel_number += 1
     message_id = call.message.message_id
     await YoutubeSearch.with_channel_name(call, search_name, user_id, user_lang, message_id,
-                                          channel_number=int(channel_number), is_callback=True)
+                                          channel_number=int(channel_number))
 
 
 class YoutubeSearch:
@@ -157,79 +161,56 @@ class YoutubeSearch:
     @staticmethod
     async def with_channel_name(message: types.Message | types.CallbackQuery,
                                 search_name: str, user_id: int,
-                                user_lang: str, message_id: int,
-                                call_count: int = 0,
-                                channel_number: int = 0,
-                                bot_msg=None, is_callback=None):
-        call_count += 1
-        channel_number_limit = 10
-        if channel_number == channel_number_limit:
-            await bot.edit_message_text(chat_id=user_id, message_id=message_id,
-                                        text=_('Не удается найти нужный канал, попробуй ввести более '
-                                               'точное название канала, либо используй другой метод '
-                                               'добавления канала', locale=user_lang),
-                                        reply_markup=await get_youtube_add_method_kb(user_id))
+                                user_lang: str, message_id: int = None,
+                                channel_number: int = 0):
+        if channel_number >= 5:
+            await bot.delete_message(user_id, message_id)
+            await bot.send_message(chat_id=user_id,
+                                   text=_('Не удается найти нужный канал, попробуй ввести более '
+                                          'точное название канала, либо используй другой метод '
+                                          'добавления канала', locale=user_lang),
+                                   reply_markup=await get_youtube_add_method_kb(user_id))
             return
-        if call_count >= 15:
-            await bot.delete_message(user_id, bot_msg.message_id)
+        if channel_number == 0:
+            anim_msg = await message.answer('🔍')
+            anim_time = 1
+        else:
+            await bot.delete_message(user_id, message_id)
+            anim_msg = await bot.send_message(user_id, '🔍')
+            anim_time = 0
+        channel_search = await ChannelsSearch(search_name, limit=channel_number + 1, timeout=10).next()
+        await asyncio.sleep(anim_time)
+
+        try:
+            channel_url = channel_search['result'][channel_number]['link']
+        except IndexError:
+            await bot.delete_message(user_id, anim_msg.message_id)
             await bot.send_message(user_id, _('Не могу найти информацию о канале "{}"\n '
                                               'Попробуй ещё раз!', locale=user_lang).format(search_name),
                                    reply_markup=await get_youtube_add_method_kb(user_id))
             return
-        channel_search = await ChannelsSearch(search_name, limit=channel_number_limit).next()
-        try:
-            video_count = channel_search['result'][channel_number]['videoCount']
-            channel_subs = channel_search['result'][channel_number]['subscribers'][:-11]
-        except IndexError:
-            await bot.send_message(user_id,
-                                   _('Не могу найти канал с именем "{}"', locale=user_lang).format(search_name))
-            return
-        except TypeError:
-            await YoutubeSearch.with_channel_name(message, search_name, user_id, user_lang, message_id, call_count,
-                                                  channel_number + 1, bot_msg, is_callback)
-            return
-        if not video_count or not channel_subs:
-            await asyncio.sleep(0.2)
-            call_count_animation = {1: '🔍', 7: '🔎'}
-            if not is_callback:
-                if call_count == 1:
-                    bot_msg = await bot.send_message(user_id, _('...', locale=user_lang))
-                try:
-                    await bot.edit_message_text(chat_id=user_id, message_id=bot_msg.message_id,
-                                                text=call_count_animation[call_count])
-                except KeyError:
-                    pass
-                except AttributeError:
-                    pass
-            await YoutubeSearch.with_channel_name(message, search_name, user_id, user_lang, message_id, call_count,
-                                                  channel_number, bot_msg, is_callback)
-            return
-        try:
-            await bot.delete_message(user_id, bot_msg.message_id)
-        except AttributeError:
-            pass
-        channel_url = channel_search['result'][channel_number]['link']
+
+        channel_subs = await youtube_url.parse_subscribers(channel_url)
         channel_logo_url = f"{'https:'}{channel_search['result'][channel_number]['thumbnails'][1]['url']}"
+
         response_text = _('*Этот канал ты ищешь?*\n\n'
                           'Название: *{channel_name}*\n'
-                          'Подписчики: *{channel_subs}*\n'
-                          'Всего видео: *{channel_video_count}*'
+                          'Подписчики: *{channel_subs}*'
                           '{channel_logo_url}', locale=user_lang).format(
             channel_name=channel_search['result'][channel_number]['title'],
             channel_subs=channel_subs,
-            channel_video_count=video_count,
             channel_logo_url=f"[.]({channel_logo_url})")
-        if is_callback:
-            await message.message.edit_text(response_text, parse_mode='Markdown',
-                                            reply_markup=await get_is_channel_correct_kb(channel_url, search_name,
-                                                                                         channel_number, user_lang))
-        else:
-            await bot.send_message(user_id, response_text, parse_mode='Markdown',
+
+        await bot.delete_message(user_id, anim_msg.message_id)
+
+        try:
+            await bot.send_photo(user_id, photo=channel_logo_url, caption=response_text, parse_mode='Markdown',
+                                 reply_markup=await get_is_channel_correct_kb(channel_url, search_name,
+                                                                              channel_number, user_lang))
+        except:
+            await bot.send_message(user_id, text=response_text, parse_mode='Markdown',
                                    reply_markup=await get_is_channel_correct_kb(channel_url, search_name,
                                                                                 channel_number, user_lang))
-            # await bot.send_photo(user_id, photo=channel_logo_url, caption=response_text, parse_mode='Markdown',
-            #                     reply_markup=await get_is_channel_correct_kb(channel_url, search_name,
-            #                                                                  channel_number, user_lang))
 
 
 async def youtube_add_with_channel_name(message: types.Message, state: FSMContext):
@@ -316,12 +297,12 @@ async def delete_callback_execute(call: types.CallbackQuery):
 
 
 async def get_delete_youtube_channel_kb(name_and_url_channel_list):
-    markup = InlineKeyboardMarkup()  # создаём клавиатуру
-    markup.row_width = 1  # кол-во кнопок в строке
-    for i in name_and_url_channel_list:  # цикл для создания кнопок
+    markup = InlineKeyboardMarkup()
+    markup.row_width = 1
+    for i in name_and_url_channel_list:
         markup.add(InlineKeyboardButton(i[0][:20],
                                         callback_data=f'del {i[1]}'))
-    return markup  # возвращаем клавиатуру
+    return markup
 
 
 @dp.throttled(throttling_alert, rate=6)
