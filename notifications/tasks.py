@@ -12,7 +12,6 @@ class Scheduler:
     async def make_task(self):
         aioschedule.every(30).seconds.do(youtube_listener.listen)
         #aioschedule.every().day.at('1:00').do(reset_requests_amount)
-        # aioschedule.every(5).seconds.do(self.reset_requests_amount)
         while True:
             await aioschedule.run_pending()
             await asyncio.sleep(1)
