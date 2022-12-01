@@ -30,8 +30,30 @@ async def url_corrector(url):
     return url
 
 
-async def parse_videos(url):
-    correct_url = await url_corrector(url)
+async def is_stream_check(video_id: str) -> bool:
+    video_url = f'https://www.youtube.com/watch?v={video_id}'
+    response = requests.get(video_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    search = soup.find_all('script')
+    is_live_key = '"isLiveContent":'
+    is_live = re.findall(is_live_key + r'([^*]{5})', str(search))[0].replace('}', '')
+    return is_live
+
+
+async def parse_stream(channel_url: str, check_is_stream=False) -> tuple[bool, str] | str:
+    last_video_id = await parse_videos(channel_url, url_correctrol=False)
+    if check_is_stream:
+        is_stream = await is_stream_check(last_video_id)
+        return is_stream == 'true', last_video_id
+    else:
+        return last_video_id
+
+
+async def parse_videos(url: str, url_correctrol=True) -> str:
+    if url_correctrol:
+        correct_url = await url_corrector(url)
+    else:
+        correct_url = url
     response = requests.get(correct_url)
     soup = BeautifulSoup(response.text, 'html.parser')
     search = soup.find_all('script')
@@ -69,8 +91,11 @@ async def get_video_url_by_id(video_id: str) -> str:
 def parse_videos_test(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    search = soup.find(href=re.compile("https://www.youtube.com/"), rel="canonical")['href']
-    return search
+    search = soup.find_all('script')
+    key = '"videoId":"'
+    data = re.findall(key + r'([^*]{11})', str(search))
+    return data[0]
 
+#print(parse_stream('https://www.youtube.com/@LiveSportPro'))
 # print(parse_videos_test('https://www.youtube.com/@StarGameWF'))
 # print(parse_videos_test('https://www.youtube.com/c/stayugly_/videos'))

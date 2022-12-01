@@ -33,7 +33,7 @@ async def notifications_enabled_error(user_id, user_lang, channel_name):
 
 async def user_status_check(user_id, user_lang, message=None, callback=None, name_and_url_channel_list=None):
     if not name_and_url_channel_list:
-        name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
+        name_and_url_channel_list = await Youtube.Channel.get_all_rows_related(user_id)
     user_status = await User.Status.where_user(user_id)
     if user_status[0] == 'default':
         if len(name_and_url_channel_list) >= MAX_NUMBER_ON_CHANNEL:
@@ -55,7 +55,7 @@ async def user_status_check(user_id, user_lang, message=None, callback=None, nam
 @dp.throttled(throttling_alert, rate=3)
 async def add_youtube_channel(message: types.Message, user_lang):
     user_id = message.from_user.id
-    name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
+    name_and_url_channel_list = await Youtube.Channel.get_all_rows_related(user_id)
     if await user_status_check(user_id, user_lang, message=message,
                                name_and_url_channel_list=name_and_url_channel_list):
         await message.answer(_('Выбери метод поиска канала🔍', locale=user_lang),
@@ -119,6 +119,7 @@ async def youtube_right_channel_call_handler(call: types.CallbackQuery):
     channel_url = await youtube_url.get_channel_url_by_short_url(channel_short_url)
     channel_name = await youtube_url.get_channel_title(channel_url)
     current_video = await youtube_url.parse_videos(channel_url)
+    stream_id = await youtube_url.parse_stream(channel_url)
     user_channels_url_list = await Youtube.Channel.Url.where_user(user_id)
     if channel_url not in user_channels_url_list:
         await call.message.delete()
@@ -126,7 +127,7 @@ async def youtube_right_channel_call_handler(call: types.CallbackQuery):
         await asyncio.sleep(1.5)
         await bot.edit_message_text(_('🔔Уведомления о канале "{}" включены✔', locale=user_lang).format(channel_name),
                                     chat_id=user_id, message_id=anim_msg.message_id)
-        await Youtube.add(channel_name, channel_url, current_video, user_id)
+        await Youtube.add(channel_name, channel_url, current_video, stream_id, user_id)
     else:
         await call.message.delete()
         anim_msg = await bot.send_message(user_id, '❌')
@@ -241,10 +242,12 @@ async def youtube_add_with_channel_url(message: types.Message, state: FSMContext
         return
     channel_name = await youtube_url.get_channel_title(channel_url)
     current_video = await youtube_url.parse_videos(channel_url)
+    stream_id = await youtube_url.parse_stream(channel_url)
     user_channels_url_list = await Youtube.Channel.Url.where_user(user_id)
+
     if channel_url not in user_channels_url_list:
         await notifications_enabled(user_id, user_lang, channel_name)
-        await Youtube.add(channel_name, channel_url, current_video, user_id)
+        await Youtube.add(channel_name, channel_url, current_video, stream_id, user_id)
     else:
         await notifications_enabled_error(user_id, user_lang, channel_name)
     await state.finish()
@@ -271,10 +274,11 @@ async def youtube_add_with_channel_video_url(message: types.Message, state: FSMC
     response_channel_name = video["channel"]['name']
     response_channel_url = video["channel"]['link']
     current_video = await youtube_url.parse_videos(response_channel_url)
+    stream_id = await youtube_url.parse_stream(response_channel_url)
     user_channels_url_list = await Youtube.Channel.Url.where_user(user_id)
     if response_channel_url not in user_channels_url_list:
         await notifications_enabled(user_id, user_lang, response_channel_name)
-        await Youtube.add(response_channel_name, response_channel_url, current_video, user_id)
+        await Youtube.add(response_channel_name, response_channel_url, current_video, stream_id, user_id)
     else:
         await notifications_enabled_error(user_id, user_lang, response_channel_name)
     await state.finish()
@@ -287,7 +291,7 @@ async def delete_callback_execute(call: types.CallbackQuery):
     channel_url = call.data.replace('del ', '')
     await Youtube.Channel.Url.delete(channel_url, user_id)
     await call.answer(text=_('Уведомления о канале выключены', locale=user_lang))
-    name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
+    name_and_url_channel_list = await Youtube.Channel.get_all_rows_related(user_id)
     if name_and_url_channel_list:
         await call.message.edit_text(
             text=_('Какой канал удалить?', locale=user_lang),
@@ -309,7 +313,7 @@ async def get_delete_youtube_channel_kb(name_and_url_channel_list):
 async def delete_youtube_channel(message: types.Message):
     user_id = message.from_user.id
     user_lang = await get_user_locale(user_id)
-    name_and_url_channel_list = await Youtube.Channel.get_all_rows_related_id(user_id)
+    name_and_url_channel_list = await Youtube.Channel.get_all_rows_related(user_id)
     if name_and_url_channel_list:
         await message.answer(_('Какой канал удалить?', locale=user_lang),
                              reply_markup=await get_delete_youtube_channel_kb(name_and_url_channel_list))

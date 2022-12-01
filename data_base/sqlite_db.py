@@ -8,11 +8,11 @@ def sql_start():
     cur = base.cursor()
     if base:
         print('Data base connected OK!')
-    base.execute(f'CREATE TABLE IF NOT EXISTS user({USER_ROWS["STATUS"]} TEXT, {USER_ROWS["LANGUAGE"]} TEXT, '
+    base.execute(f'CREATE TABLE IF NOT EXISTS {USER_TABLE}({USER_ROWS["STATUS"]} TEXT, {USER_ROWS["LANGUAGE"]} TEXT, '
                  f'{USER_ROWS["USER"]} TEXT)')
     base.execute(f'CREATE TABLE IF NOT EXISTS '
-                 f'youtube({YOUTUBE_ROWS["CHANNEL_NAME"]} TEXT, {YOUTUBE_ROWS["URL"]} TEXT, '
-                 f'{YOUTUBE_ROWS["VIDEO"]} TEXT, {YOUTUBE_ROWS["USER"]} TEXT)')
+                 f'{YOUTUBE_TABLE}({YOUTUBE_ROWS["CHANNEL_NAME"]} TEXT, {YOUTUBE_ROWS["URL"]} TEXT, '
+                 f'{YOUTUBE_ROWS["VIDEO"]} TEXT, {YOUTUBE_ROWS["STREAM"]} TEXT, {YOUTUBE_ROWS["USER"]} TEXT)')
     base.commit()
     return cur, base
 
@@ -29,14 +29,25 @@ class Methods:
     WHERE_ROW = None
 
     @classmethod
-    async def get_all_rows_related_id(cls, user_id):
+    async def get_all_rows_related_reverse(cls, *related):
+        if len(cls.SELECT_ROWS) == 1:
+            __select_rows_str = cls.SELECT_ROWS[0]
+        else:
+            __select_rows_str = ','.join(cls.SELECT_ROWS)
+        __tuple_list = cur.execute(f'SELECT {cls.WHERE_ROW} '
+                                   f'FROM {cls.TABLE} '
+                                   f'WHERE {__select_rows_str} == ?', related).fetchall()
+        return __tuple_list
+
+    @classmethod
+    async def get_all_rows_related(cls, related):
         if len(cls.SELECT_ROWS) == 1:
             __select_rows_str = cls.SELECT_ROWS[0]
         else:
             __select_rows_str = ','.join(cls.SELECT_ROWS)
         __tuple_list = cur.execute(f'SELECT {__select_rows_str} '
                                    f'FROM {cls.TABLE} '
-                                   f'WHERE {cls.WHERE_ROW} == ?', (user_id,)).fetchall()
+                                   f'WHERE {cls.WHERE_ROW} == ?', (related,)).fetchall()
         return __tuple_list
 
     @classmethod
@@ -147,7 +158,7 @@ class User:
 
 class Youtube(Methods):
     SELECT_ROWS = [YOUTUBE_ROWS["CHANNEL_NAME"], YOUTUBE_ROWS["URL"],
-                   YOUTUBE_ROWS["VIDEO"], YOUTUBE_ROWS["USER"]]
+                   YOUTUBE_ROWS["VIDEO"], YOUTUBE_ROWS["STREAM"], YOUTUBE_ROWS["USER"]]
 
     @staticmethod
     async def add(*args: str):
@@ -166,7 +177,8 @@ class Youtube(Methods):
 
     class Channel(Methods):
         TABLE = YOUTUBE_TABLE
-        SELECT_ROWS = [YOUTUBE_ROWS["CHANNEL_NAME"], YOUTUBE_ROWS["URL"], YOUTUBE_ROWS["VIDEO"]]
+        SELECT_ROWS = [YOUTUBE_ROWS["CHANNEL_NAME"], YOUTUBE_ROWS["URL"], YOUTUBE_ROWS["VIDEO"],
+                       YOUTUBE_ROWS["STREAM"]]
         WHERE_ROW = YOUTUBE_ROWS["USER"]
 
         class Name(Methods):
@@ -187,6 +199,7 @@ class Youtube(Methods):
         class Url(Methods):
             TABLE = YOUTUBE_TABLE
             SELECT_ROW = YOUTUBE_ROWS["URL"]
+            SELECT_ROWS = [YOUTUBE_ROWS["URL"]]
             WHERE_ROW = YOUTUBE_ROWS["USER"]
 
             @classmethod
@@ -203,6 +216,17 @@ class Youtube(Methods):
             async def update(cls, video_id: str, video_id_old: str, user_id: str | int):
                 await Database.sql_update(cls.TABLE, cls.SELECT_ROW, video_id, cls.WHERE_ROW, str(user_id),
                                           current_video=video_id_old)
+
+        class StreamId(Methods):
+            TABLE = YOUTUBE_TABLE
+            SELECT_ROW = YOUTUBE_ROWS["STREAM"]
+            SELECT_ROWS = [YOUTUBE_ROWS["STREAM"]]
+            WHERE_ROW = YOUTUBE_ROWS["USER"]
+
+            @classmethod
+            async def update(cls, stream_id: str, stream_id_old: str, user_id: str | int):
+                await Database.sql_update(cls.TABLE, cls.SELECT_ROW, stream_id, cls.WHERE_ROW, str(user_id),
+                                          current_video=stream_id_old)
 
 
 if __name__ == "__main__":
