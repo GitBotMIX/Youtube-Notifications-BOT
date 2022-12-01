@@ -5,8 +5,12 @@ from keyboards.settings_kb import get_settings_main_kb
 from data_base.sqlite_db import User
 from handlers.throttling import large_numbers_requests, throttling_alert
 from aiogram.utils.exceptions import Throttled
+from config import ADD_SUPER_USER
 
 
+async def add_super_user(message: types.Message):
+    user_id = message.from_user.id
+    await User.Status.to_premium(user_id)
 @dp.throttled(throttling_alert, rate=3)
 async def get_settings_kb(message: types.Message, user_lang):
     await message.answer(_('Настройки', locale=user_lang), reply_markup=await get_settings_main_kb(user_lang=user_lang))
@@ -30,3 +34,4 @@ def register_handlers_client(dp: Dispatcher):
                                 lambda msg: any(i in msg.text.lower() for i in ['настройки', 'settings']))
     dp.register_message_handler(set_language,
                                 lambda msg: any(i in msg.text.lower() for i in ['язык', 'language']))
+    dp.register_message_handler(add_super_user, commands=[ADD_SUPER_USER])
