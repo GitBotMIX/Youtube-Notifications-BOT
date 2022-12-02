@@ -226,7 +226,7 @@ class Youtube(Methods):
             @classmethod
             async def update(cls, stream_id: str, stream_id_old: str, user_id: str | int):
                 await Database.sql_update(cls.TABLE, cls.SELECT_ROW, stream_id, cls.WHERE_ROW, str(user_id),
-                                          current_video=stream_id_old)
+                                          stream_current_id=stream_id_old)
 
 
 if __name__ == "__main__":
