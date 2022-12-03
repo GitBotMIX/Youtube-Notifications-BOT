@@ -10,3 +10,5 @@ myvenv
 /Notifications.db
 /venv/
 /env/
+venv
+venv/
