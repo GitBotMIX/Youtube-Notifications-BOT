@@ -334,7 +334,7 @@ msgid ""
 "🔔На канале \"{}\" новое видео!\n"
 "{}"
 msgstr ""
-"🔔New video on \"*{}*\" channel!\n"
+"🔔New video on \"{}\" channel!\n"
 "{}"
 
 #: notifications/youtube_listener.py:78
