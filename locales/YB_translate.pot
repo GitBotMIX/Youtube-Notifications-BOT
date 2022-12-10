@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-12-03 22:14+0300\n"
+"POT-Creation-Date: 2022-12-10 16:30+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
 
-#: handlers/main.py:23
+#: handlers/main.py:26
 msgid "Главное меню"
+msgstr ""
+
+#: handlers/main_callbacks.py:20
+msgid ""
+"🌍 Теперь необходимо определиться с часовым поясом. Укажи разницу во "
+"времени относительно UTC.\n"
+"{}"
 msgstr ""
 
 #: handlers/settings.py:16 handlers/youtube_notifications.py:20
@@ -37,37 +44,47 @@ msgstr ""
 msgid "Не так часто! Попробуй немного позже"
 msgstr ""
 
-#: handlers/youtube.py:22 handlers/youtube.py:128
+#: handlers/timezone_callbacks.py:18
+msgid "⏱Часовой пояс установлен✔"
+msgstr ""
+
+#: handlers/timezone_callbacks.py:22
+msgid ""
+"Отлично, теперь наконец-то можно пользоваться функциями бота, для этого "
+"используй меню бота."
+msgstr ""
+
+#: handlers/youtube.py:24 handlers/youtube.py:130
 msgid "🔔Уведомления о канале \"{}\" включены✔"
 msgstr ""
 
-#: handlers/youtube.py:30 handlers/youtube.py:136
+#: handlers/youtube.py:32 handlers/youtube.py:138
 msgid "Уведомления о канале \"{}\" уже включены❌"
 msgstr ""
 
-#: handlers/youtube.py:41 handlers/youtube.py:45
+#: handlers/youtube.py:43 handlers/youtube.py:47
 msgid ""
 "❌У тебя слишком много каналов.\n"
 "Что-бы добавить новые - удали старые:"
 msgstr ""
 
-#: handlers/youtube.py:61
+#: handlers/youtube.py:63
 msgid "Выбери метод поиска канала🔍"
 msgstr ""
 
-#: handlers/youtube.py:72
+#: handlers/youtube.py:74
 msgid "🔍Введи название канала:"
 msgstr ""
 
-#: handlers/youtube.py:75
+#: handlers/youtube.py:77
 msgid "🕹Введи ссылку на канал:"
 msgstr ""
 
-#: handlers/youtube.py:78
+#: handlers/youtube.py:80
 msgid "🎥Введи ссылку на видео с канала:"
 msgstr ""
 
-#: handlers/youtube.py:81
+#: handlers/youtube.py:83
 msgid ""
 "Как я работаю❓\n"
 "Для начала нужно добавить канал, что-бы это сделать нажми на кнопку "
@@ -89,31 +106,31 @@ msgid ""
 " эту ссылку боту, после нажатия соответствующей кнопки."
 msgstr ""
 
-#: handlers/youtube.py:102
+#: handlers/youtube.py:104
 msgid "Да"
 msgstr ""
 
-#: handlers/youtube.py:104
+#: handlers/youtube.py:106
 msgid "Нет"
 msgstr ""
 
-#: handlers/youtube.py:106
+#: handlers/youtube.py:108
 msgid "Ссылка на канал"
 msgstr ""
 
-#: handlers/youtube.py:170
+#: handlers/youtube.py:172
 msgid ""
 "Не удается найти нужный канал, попробуй ввести более точное название "
 "канала, либо используй другой метод добавления канала"
 msgstr ""
 
-#: handlers/youtube.py:189
+#: handlers/youtube.py:191
 msgid ""
 "Не могу найти информацию о канале \"{}\"\n"
 " Попробуй ещё раз!"
 msgstr ""
 
-#: handlers/youtube.py:197
+#: handlers/youtube.py:199
 msgid ""
 "*Этот канал ты ищешь?*\n"
 "\n"
@@ -121,68 +138,159 @@ msgid ""
 "Подписчики: *{channel_subs}*{channel_logo_url}"
 msgstr ""
 
-#: handlers/youtube.py:239
+#: handlers/youtube.py:241
 msgid "Введена неверная ссылка на канал❌"
 msgstr ""
 
-#: handlers/youtube.py:267
+#: handlers/youtube.py:269
 msgid ""
 "Не могу найти видео по твоей ссылке.❌\n"
 "Пример правильной ссылки на видео с канала - "
 "https://www.youtube.com/watch?v=ycPr5-27vSI"
 msgstr ""
 
-#: handlers/youtube.py:293
+#: handlers/youtube.py:295
 msgid "Уведомления о канале выключены"
 msgstr ""
 
-#: handlers/youtube.py:297 handlers/youtube.py:318
+#: handlers/youtube.py:299 handlers/youtube.py:320
 msgid "Какой канал удалить?"
 msgstr ""
 
-#: handlers/youtube.py:300
+#: handlers/youtube.py:302
 msgid "Все каналы удалены✖"
 msgstr ""
 
-#: handlers/youtube.py:321
+#: handlers/youtube.py:323
 msgid ""
 "❌У тебя ещё нету отслеживаемых каналов, ты можешь добавить их командой "
 "\"Добавить канал\""
 msgstr ""
 
+#: handlers/youtube_remind_callback.py:23
+#: handlers/youtube_remind_callback.py:75 notifications/youtube_listener.py:58
+msgid "Установить напоминание"
+msgstr ""
+
 #: keyboards/markups.py:8
-msgid "По названию канала"
+msgid "🇷🇺Русский"
 msgstr ""
 
 #: keyboards/markups.py:10
+msgid "🇬🇧English"
+msgstr ""
+
+#: keyboards/markups.py:18
+msgid "По названию канала"
+msgstr ""
+
+#: keyboards/markups.py:20
 msgid "По ссылке на канал"
 msgstr ""
 
-#: keyboards/markups.py:12
+#: keyboards/markups.py:22
 msgid "По ссылке на видео"
 msgstr ""
 
-#: keyboards/markups.py:14
+#: keyboards/markups.py:24
 msgid "Ничего не понимаю..."
 msgstr ""
 
-#: notifications/youtube_listener.py:44
+#: keyboards/remind_inline.py:13
+msgid "Напоминание установлено на {}"
+msgstr ""
+
+#: keyboards/remind_inline.py:16
+msgid "Удалить"
+msgstr ""
+
+#: keyboards/remind_inline.py:18
+msgid "Изменить"
+msgstr ""
+
+#: keyboards/remind_inline.py:97
+msgid "Сегодня - {}"
+msgstr ""
+
+#: keyboards/remind_inline.py:99
+msgid "Понедельник"
+msgstr ""
+
+#: keyboards/remind_inline.py:101
+msgid "Вторник"
+msgstr ""
+
+#: keyboards/remind_inline.py:103
+msgid "Среда"
+msgstr ""
+
+#: keyboards/remind_inline.py:105
+msgid "Четверг"
+msgstr ""
+
+#: keyboards/remind_inline.py:107
+msgid "Пятница"
+msgstr ""
+
+#: keyboards/remind_inline.py:109
+msgid "Суббота"
+msgstr ""
+
+#: keyboards/remind_inline.py:111
+msgid "Воскресенье"
+msgstr ""
+
+#: keyboards/remind_inline.py:128
+msgid "Сегодня"
+msgstr ""
+
+#: keyboards/remind_inline.py:130
+msgid "Завтра"
+msgstr ""
+
+#: keyboards/remind_inline.py:132
+msgid "..."
+msgstr ""
+
+#: keyboards/remind_inline.py:134
+msgid "Отменить"
+msgstr ""
+
+#: notifications/remind_listener.py:14
+msgid "Напомнить позже"
+msgstr ""
+
+#: notifications/remind_listener.py:17
+msgid ""
+"🔔Напоминание о видео! \n"
+"⚠На сервере бота произошли технические неполадки, просим прощения за "
+"задержку напоминания.\n"
+"{}"
+msgstr ""
+
+#: notifications/remind_listener.py:20
+msgid ""
+"🔔Напоминание о видео!\n"
+"{}"
+msgstr ""
+
+#: notifications/youtube_listener.py:47
 msgid ""
 "🔔Прямая трансляция на канале \"{}\"\n"
 "{}"
 msgstr ""
 
-#: notifications/youtube_listener.py:50
+#: notifications/youtube_listener.py:53
 msgid "🔔На канале \"{}\" поменялось название на \"{}\""
 msgstr ""
 
-#: notifications/youtube_listener.py:56
+#: notifications/youtube_listener.py:59
 msgid ""
-"🔔На канале \"*{}*\" новое видео!\n"
+"🔔На канале \"{}\" новое видео!\n"
 "{}"
 msgstr ""
 
-#: notifications/youtube_listener.py:77
+#: notifications/youtube_listener.py:78
 msgid ""
 "❌Ссылка на канал \"{}\" больше не актуальна, информация о канале удалена,"
 " попробуй заново добавить канал\n"

@@ -16,7 +16,8 @@ async def get_buttons_ru():
     return b1, b2, b3
 
 
-async def get_youtube_main_kb(user_id):
+async def get_youtube_main_kb(user_id, user_lang=None):
+    user_lang = (await get_user_locale(user_id) if not user_lang else user_lang)
     user_lang = await get_user_locale(user_id)
     if user_lang == 'en':
         b1, b2, b3 = await get_buttons_en()

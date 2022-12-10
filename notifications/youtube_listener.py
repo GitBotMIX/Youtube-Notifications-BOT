@@ -4,6 +4,8 @@ from functions import youtube_url
 from middlewares.i18m_language import get_user_locale
 from create_bot import _
 from aiogram.utils.exceptions import ChatNotFound
+from keyboards.markups import get_youtube_add_method_kb
+from keyboards.remind_inline import get_youtube_remind_preview_kb
 
 legacy_link_cleaner = {}
 
@@ -26,6 +28,8 @@ async def listen():
     for user_id in all_user_id:
         youtube_channel_name_and_url_list = await Youtube.Channel.get_all_rows_related(user_id)
         for user_channel_data in youtube_channel_name_and_url_list:
+
+            user_lang = await get_user_locale(user_id)
             channel_name_old = user_channel_data[0]
             channel_url = user_channel_data[1]
             channel_last_video_id_old = user_channel_data[2]
@@ -41,21 +45,22 @@ async def listen():
                         await Youtube.Channel.StreamId.update(channel_last_stream_id, channel_last_stream_id_old,
                                                               user_id)
                         await bot.send_message(user_id, _('🔔Прямая трансляция на канале '
-                                                          '"{}"\n{}', locale=await get_user_locale(user_id)).format(
-                            channel_name_old, channel_stream_url))
+                                                          '"{}"\n{}', locale=user_lang).format(channel_name_old,
+                                                                                               channel_stream_url))
 
                     if channel_name != channel_name_old:
                         await Youtube.Channel.Name.update(channel_name, channel_name_old, user_id)
                         await bot.send_message(user_id, _('🔔На канале "{}" поменялось название на "{}"',
-                                                          locale=await get_user_locale(user_id)).format(channel_name_old,
-                                                                                                        channel_name))
+                                                          locale=user_lang).format(channel_name_old, channel_name))
 
                     if channel_last_video_id != channel_last_video_id_old:
                         await Youtube.Channel.VideoId.update(channel_last_video_id, channel_last_video_id_old, user_id)
-                        await bot.send_message(user_id, _('🔔На канале "*{}*" новое видео!\n{}',
-                                                          locale=await get_user_locale(user_id)).format(channel_name,
-                                                                                                        channel_last_video_url),
-                                               parse_mode='Markdown')
+                        button_text = _('Установить напоминание', locale=user_lang)
+                        await bot.send_message(user_id, _('🔔На канале "{}" новое видео!\n{}',
+                                                          locale=user_lang).format(channel_name,
+                                                                                   channel_last_video_url),
+                                               reply_markup=await get_youtube_remind_preview_kb(user_id, button_text,
+                                                                                                user_lang))
                 except ChatNotFound:
                     await delete_user(user_id)
             except:
@@ -74,10 +79,11 @@ async def listen():
                                                                                'актуальна, информация о канале удалена, '
                                                                                'попробуй заново добавить канал\n\n'
                                                                                'Устаревшая ссылка - {}',
-                                                                               locale=await get_user_locale(
-                                                                                   user_id)).format(channel_name_old,
-                                                                                                    channel_url),
-                                                   parse_mode='Markdown')
+                                                                               locale=user_lang).format(
+                                channel_name_old,
+                                channel_url),
+                                                   parse_mode='Markdown',
+                                                   reply_markup=await get_youtube_add_method_kb(user_id, user_lang))
                         except ChatNotFound:
                             await delete_user(user_id_with_channel_url)
                     legacy_link_cleaner[channel_url] = 0
