@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2022-12-10 16:30+0300\n"
+"POT-Creation-Date: 2022-12-11 11:23+0300\n"
 "PO-Revision-Date: 2022-11-14 17:13+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -28,9 +28,10 @@ msgid ""
 "времени относительно UTC.\n"
 "{}"
 msgstr ""
-" 🌍 Now it is necessary to determine the time zone. Specify the difference in "
-" time relative to UTC.\n"
+" 🌍 Now it is necessary to determine the time zone. Specify the difference"
+" in  time relative to UTC.\n"
 "{}"
+
 #: handlers/settings.py:16 handlers/youtube_notifications.py:20
 msgid "Настройки"
 msgstr "Settings"
@@ -56,8 +57,8 @@ msgid ""
 "Отлично, теперь наконец-то можно пользоваться функциями бота, для этого "
 "используй меню бота."
 msgstr ""
-"Great, now you can finally use the functions of the bot, for this "
-"use the bot menu."
+"Great, now you can finally use the functions of the bot, for this use the"
+" bot menu."
 
 #: handlers/youtube.py:24 handlers/youtube.py:130
 msgid "🔔Уведомления о канале \"{}\" включены✔"
@@ -205,8 +206,8 @@ msgstr ""
 "❌You don't have any monitored channels yet, you can add them with the "
 "command \"Add channel\""
 
-#: handlers/youtube_remind_callback.py:23
-#: handlers/youtube_remind_callback.py:75 notifications/youtube_listener.py:58
+#: handlers/youtube_remind_callback.py:24
+#: handlers/youtube_remind_callback.py:82 notifications/youtube_listener.py:58
 msgid "Установить напоминание"
 msgstr "Set a reminder"
 
@@ -246,51 +247,52 @@ msgstr "Delete"
 msgid "Изменить"
 msgstr "Edit"
 
-#: keyboards/remind_inline.py:97
+#: keyboards/remind_inline.py:103
+#, fuzzy
 msgid "Сегодня - {}"
-msgstr "Today - {}"
+msgstr "Today"
 
-#: keyboards/remind_inline.py:99
+#: keyboards/remind_inline.py:105
 msgid "Понедельник"
 msgstr "Monday"
 
-#: keyboards/remind_inline.py:101
+#: keyboards/remind_inline.py:107
 msgid "Вторник"
 msgstr "Tuesday"
 
-#: keyboards/remind_inline.py:103
+#: keyboards/remind_inline.py:109
 msgid "Среда"
 msgstr "Wednesday"
 
-#: keyboards/remind_inline.py:105
+#: keyboards/remind_inline.py:111
 msgid "Четверг"
 msgstr "Thursday"
 
-#: keyboards/remind_inline.py:107
+#: keyboards/remind_inline.py:113
 msgid "Пятница"
 msgstr "Friday"
 
-#: keyboards/remind_inline.py:109
+#: keyboards/remind_inline.py:115
 msgid "Суббота"
 msgstr "Saturday"
 
-#: keyboards/remind_inline.py:111
+#: keyboards/remind_inline.py:117
 msgid "Воскресенье"
 msgstr "Sunday"
 
-#: keyboards/remind_inline.py:128
+#: keyboards/remind_inline.py:134
 msgid "Сегодня"
 msgstr "Today"
 
-#: keyboards/remind_inline.py:130
+#: keyboards/remind_inline.py:136
 msgid "Завтра"
 msgstr "Tomorrow"
 
-#: keyboards/remind_inline.py:132
+#: keyboards/remind_inline.py:138
 msgid "..."
 msgstr ""
 
-#: keyboards/remind_inline.py:134
+#: keyboards/remind_inline.py:140
 msgid "Отменить"
 msgstr "Cancel"
 
@@ -306,9 +308,10 @@ msgid ""
 "{}"
 msgstr ""
 "🔔Video reminder! \n"
-" ⚠ Technical problems have occurred on the bot's server, we apologize for the "
-"delay in the reminder.\n"
+" ⚠ Technical problems have occurred on the bot's server, we apologize for"
+" the delay in the reminder.\n"
 "{}"
+
 #: notifications/remind_listener.py:20
 msgid ""
 "🔔Напоминание о видео!\n"
@@ -373,4 +376,28 @@ msgstr ""
 
 #~ msgid "..."
 #~ msgstr "..."
+
+#~ msgid "Сегодня - {}"
+#~ msgstr "Today - {}"
+
+#~ msgid "Today - monday"
+#~ msgstr "понедельник"
+
+#~ msgid "Today - tuesday"
+#~ msgstr "вторник"
+
+#~ msgid "Today - wednesday"
+#~ msgstr "среда"
+
+#~ msgid "Today - thursday"
+#~ msgstr "четверг"
+
+#~ msgid "Today - friday"
+#~ msgstr "пятница"
+
+#~ msgid "Today - saturday"
+#~ msgstr "суббота"
+
+#~ msgid "Today - sunday"
+#~ msgstr "воскресенье"
 

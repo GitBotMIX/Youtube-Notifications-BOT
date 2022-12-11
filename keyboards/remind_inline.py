@@ -89,13 +89,20 @@ async def get_choose_day_kb(user_id, user_lang=None) -> InlineKeyboardMarkup:
     user_timezone = await User.Timezone.where_user(user_id)
     user_timezone_math_sign = user_timezone[0][0]
     user_timezone_value = user_timezone[0][1:]
-    day_map = {0: 'monday', 1: 'tuesday', 2: 'wednesday', 3: 'thursday', 4: 'friday', 5: 'saturday', 6: 'sunday',
-               7: 'monday'}
+    day_map_en = {0: 'monday', 1: 'tuesday', 2: 'wednesday', 3: 'thursday',
+                  4: 'friday', 5: 'saturday', 6: 'sunday', 7: 'monday'}
+    day_map_ru = {0: 'понедельник', 1: 'вторник', 2: 'среда', 3: 'четверг',
+                  4: 'пятница', 5: 'суббота', 6: 'воскресенье', 7: 'понедельник'}
+    if user_lang == 'ru':
+        day_map = day_map_ru
+    else:
+        day_map = day_map_en
 
     time_with_timezone = await get_time_with_timezone(user_timezone_math_sign, user_timezone_value)
 
-    b0 = InlineKeyboardButton(text=_('Сегодня - {}', locale=user_lang).format(day_map[time_with_timezone.weekday()]),
-                              callback_data=f'youtube_remind_date today:{user_lang}')
+    b0 = InlineKeyboardButton(text=_('Сегодня - {}', locale=user_lang).format(
+        day_map[time_with_timezone.weekday()].title()),
+        callback_data=f'youtube_remind_date today:{user_lang}')
     b1 = InlineKeyboardButton(text=_('Понедельник', locale=user_lang),
                               callback_data=f'youtube_remind_day monday:{user_lang}')
     b2 = InlineKeyboardButton(text=_('Вторник', locale=user_lang),

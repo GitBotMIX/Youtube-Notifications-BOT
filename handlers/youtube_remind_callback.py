@@ -7,6 +7,7 @@ from keyboards.remind_inline import get_youtube_remind_preview_kb, get_youtube_r
     get_choose_time_minutes_kb, get_choose_time_hours_kb, get_final_time_kb
 from data_base.sqlite_db import Remind, User
 from aiogram.utils.exceptions import MessageToDeleteNotFound
+from functions.date_corrector import get_time_with_timezone
 
 
 async def youtube_remind_delete_or_edit(call: types.CallbackQuery):
@@ -55,35 +56,41 @@ async def youtube_remind_kb(call: types.CallbackQuery):
 
 
 async def youtube_remind_date(call: types.CallbackQuery):
+    user_id = call.from_user.id
     call_data_list = call.data.replace('youtube_remind_date ', '').split(':')
     remind_date = call_data_list[0]
     user_lang = call_data_list[1]
+    user_timezone = await User.Timezone.where_user(user_id)
+    user_timezone_math_sign = user_timezone[0][0]
+    user_timezone_value = user_timezone[0][1:]
     day_map = {0: 'monday', 1: 'tuesday', 2: 'wednesday', 3: 'thursday', 4: 'friday', 5: 'saturday', 6: 'sunday',
                7: 'monday'}
-    current_day = datetime.datetime.now().weekday()
+
+    time_with_timezone = await get_time_with_timezone(user_timezone_math_sign, user_timezone_value)
+    current_day = time_with_timezone.weekday()
     if remind_date == 'today':
         await call.message.edit_text(call.message.text, reply_markup=await get_choose_time_hours_kb(
-            user_id=call.from_user.id,
+            user_id=user_id,
             day='today',
             user_lang=user_lang))
     if remind_date == 'tomorrow':
         await call.message.edit_text(call.message.text, reply_markup=await get_choose_time_hours_kb(
-            user_id=call.from_user.id,
+            user_id=user_id,
             day=day_map[int(current_day) + 1],
             user_lang=user_lang))
     if remind_date == 'unknown':
         button_text = _('Установить напоминание', locale=user_lang)
         await call.message.edit_text(call.message.text, reply_markup=await get_youtube_remind_preview_kb(
-            user_id=call.from_user.id,
+            user_id=user_id,
             button_text=button_text,
             user_lang=user_lang))
     if remind_date == 'choose':
         await call.message.edit_text(call.message.text, reply_markup=await get_choose_day_kb(
-            user_id=call.from_user.id,
+            user_id=user_id,
             user_lang=user_lang))
 
 
-async def get_next_weekday(current_date: datetime.date, weekday: int) -> datetime.date:
+async def get_next_weekday(current_date: datetime.date, weekday: int) -> datetime:
     days_ahead = weekday - current_date.weekday()
     if days_ahead <= 0:  # Target day already happened this week
         days_ahead += 7
@@ -100,20 +107,20 @@ async def youtube_remind_time_minutes(call: types.CallbackQuery):
     user_lang = call_data_list[3]
     message_text = call.message.text
     video_url = message_text[message_text.index("?v=") + 3:]
-    current_date = datetime.date.today()
-    if selected_day != 'today':
-        next_weekday = await get_next_weekday(current_date,
-                                              day_map[selected_day])  # 0 = Monday, 1=Tuesday, 2=Wednesday...
-    else:
-        next_weekday = current_date
 
     user_timezone = await User.Timezone.where_user(user_id)
+    user_timezone_math_sign = user_timezone[0][0]
+    user_timezone_value = user_timezone[0][1:]
+
+    date_now = await get_time_with_timezone(user_timezone_math_sign, user_timezone_value)
+
+    if selected_day != 'today':
+        next_weekday = await get_next_weekday(date_now.date(),
+                                              day_map[selected_day])  # 0 = Monday, 1=Tuesday, 2=Wednesday...
+    else:
+        next_weekday = date_now.date()
     remind_job_time = f'{next_weekday.day}-{selected_hours}-{selected_minutes}'
 
-    # if await Remind.VideoUrl.get_all_rows_related_reverse(video_url, user_id):
-    #     await Remind.VideoUrl.update(video_url, remind_job_time, user_id)  # update job_time
-    # else:
-    #     await Remind.add(video_url, remind_job_time, user_id)
     await call.message.edit_text(call.message.text, reply_markup=await get_final_time_kb(
         user_id,
         next_weekday,

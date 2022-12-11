@@ -44,8 +44,14 @@ async def listen():
         date_hour_with_timezone = time_with_timezone.hour
         date_day = time_with_timezone.day
         date_minutes = time_with_timezone.minute
+        print(f'remind_date_hour = {remind_date_hour}')
+        print(f'date_hour_with_timezone = {date_hour_with_timezone}')
+        print(f'remind_date_day = {remind_date_day}')
+        print(f'date_day = {date_day}')
+        print(f'remind_date_minutes = {remind_date_minutes}')
+        print(f'date_minutes = {date_minutes}')
 
-        if int(remind_date_hour) >= date_hour_with_timezone:
+        if int(remind_date_hour) <= date_hour_with_timezone:
             if int(remind_date_day) == date_day:
                 if int(remind_date_minutes) == date_minutes:
                     await send_remind_message(video_id, user_id)
